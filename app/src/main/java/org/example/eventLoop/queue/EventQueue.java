@@ -2,7 +2,8 @@ package org.example.eventLoop.queue;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.example.Event;
+import org.example.eventLoop.interfaces.Event;
+
 
 public class EventQueue {
     private final ConcurrentLinkedQueue<Event> queue = new ConcurrentLinkedQueue<>();
