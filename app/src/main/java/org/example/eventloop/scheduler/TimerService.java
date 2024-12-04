@@ -1,8 +1,8 @@
-package org.example.eventLoop.tasks;
-
-import org.example.eventLoop.interfaces.Task;
+package org.example.eventloop.scheduler;
 
 import java.util.concurrent.PriorityBlockingQueue;
+
+import org.example.eventloop.core.interfaces.Task;
 
 public class TimerService {
     private final PriorityBlockingQueue<TimerTask> timerTasks = new PriorityBlockingQueue<>();

@@ -1,6 +1,6 @@
-package org.example.eventLoop.tasks;
+package org.example.eventloop.scheduler;
 
-import org.example.eventLoop.interfaces.Task;
+import org.example.eventloop.core.interfaces.Task;
 
 public class TimerTask implements Comparable<TimerTask> {
     private final Task task;

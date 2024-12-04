@@ -1,4 +1,4 @@
-package org.example.eventLoop.interfaces;
+package org.example.eventloop.core.interfaces;
 
 public interface Event {
     void execute();
