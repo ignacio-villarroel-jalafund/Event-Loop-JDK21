@@ -2,8 +2,8 @@ package org.example.eventloop.core;
 
 import org.example.eventloop.core.interfaces.Event;
 import org.example.eventloop.core.interfaces.Task;
-import org.example.eventloop.scheduler.TimerService;
-import org.example.eventloop.scheduler.TimerTask;
+import org.example.eventloop.timer.TimerService;
+import org.example.eventloop.timer.TimerTask;
 
 public class EventLoop {
     private final EventQueue eventQueue;
