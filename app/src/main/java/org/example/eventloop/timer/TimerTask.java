@@ -1,4 +1,4 @@
-package org.example.eventloop.scheduler;
+package org.example.eventloop.timer;
 
 import org.example.eventloop.core.interfaces.Task;
 

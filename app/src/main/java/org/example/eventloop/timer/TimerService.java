@@ -1,4 +1,4 @@
-package org.example.eventloop.scheduler;
+package org.example.eventloop.timer;
 
 import java.util.concurrent.PriorityBlockingQueue;
 
