@@ -22,26 +22,9 @@ public class EventLoop {
     public void start() {
         isRunning = true;
         while (isRunning) {
-            if (!callStack.isEmpty()) {
-                try {
-                    ITask task = callStack.getNextTask();
-                    task.execute();
-                } catch (Exception e) {
-                    errorHandler.handleError(e);
-                }
-            } else if (!microtaskQueue.isEmpty()) {
-                ITask microtask = microtaskQueue.getNextTask();
-                callStack.addTask(microtask);
-            } else if (!taskQueue.isEmpty()) {
-                TimerTask task = (TimerTask) taskQueue.getNextTask();
-                if (task.getExecutionTime() <= System.currentTimeMillis()) {
-                    callStack.addTask(task);
-                    if (task.isRecurring()) {
-                        task.reschedule();
-                        taskQueue.addTask(task);
-                    }
-                } else {
-                    taskQueue.addTask(task);
+            if (!processCallStack()) {
+                if (!processMicrotaskQueue()) {
+                    processTaskQueue();
                 }
             }
         }
@@ -62,4 +45,42 @@ public class EventLoop {
     public void addPromiseTask(PromiseTask task) {
         microtaskQueue.addTask(task);
     }
+
+    private boolean processCallStack() {
+        if (!callStack.isEmpty()) {
+            try {
+                ITask task = callStack.getNextTask();
+                task.execute();
+            } catch (Exception e) {
+                errorHandler.handleError(e);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private boolean processMicrotaskQueue() {
+        if (!microtaskQueue.isEmpty()) {
+            ITask microtask = microtaskQueue.getNextTask();
+            callStack.addTask(microtask);
+            return true;
+        }
+        return false;
+    }
+
+    private void processTaskQueue() {
+        if (!taskQueue.isEmpty()) {
+            TimerTask task = (TimerTask) taskQueue.getNextTask();
+            if (task.getExecutionTime() <= System.currentTimeMillis()) {
+                callStack.addTask(task);
+                if (task.isRecurring()) {
+                    task.reschedule();
+                    taskQueue.addTask(task);
+                }
+            } else {
+                taskQueue.addTask(task);
+            }
+        }
+    }
+
 }
