@@ -82,5 +82,7 @@ public class EventLoop {
             }
         }
     }
-
+    public boolean getIsRunning() {
+        return isRunning;
+    }
 }
