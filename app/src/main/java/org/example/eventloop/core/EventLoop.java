@@ -1,27 +1,49 @@
 package org.example.eventloop.core;
 
-import org.example.eventloop.core.interfaces.Event;
-import org.example.eventloop.core.interfaces.Task;
-import org.example.eventloop.timer.TimerService;
-import org.example.eventloop.timer.TimerTask;
+import org.example.eventloop.domain.entities.concretes.PromiseTask;
+import org.example.eventloop.domain.entities.concretes.Task;
+import org.example.eventloop.domain.entities.concretes.TimerTask;
+import org.example.eventloop.domain.entities.interfaces.ITask;
 
 public class EventLoop {
-    private final EventQueue eventQueue;
-    private final TimerService timerService;
-    private final ErrorHandler errorHandler;
-    private volatile boolean isRunning;
+    private CallStack callStack;
+    private TaskQueue taskQueue;
+    private MicrotaskQueue microtaskQueue;
+    private ErrorHandler errorHandler;
+    private boolean isRunning;
 
     public EventLoop() {
-        this.eventQueue = new EventQueue();
-        this.timerService = new TimerService();
+        this.callStack = new CallStack();
+        this.taskQueue = new TaskQueue();
+        this.microtaskQueue = new MicrotaskQueue();
         this.errorHandler = new ErrorHandler();
     }
 
     public void start() {
         isRunning = true;
         while (isRunning) {
-            processNextEvent();
-            processTimerTasks();
+            if (!callStack.isEmpty()) {
+                try {
+                    ITask task = callStack.getNextTask();
+                    task.execute();
+                } catch (Exception e) {
+                    errorHandler.handleError(e);
+                }
+            } else if (!microtaskQueue.isEmpty()) {
+                ITask microtask = microtaskQueue.getNextTask();
+                callStack.addTask(microtask);
+            } else if (!taskQueue.isEmpty()) {
+                TimerTask task = (TimerTask) taskQueue.getNextTask();
+                if (task.getExecutionTime() <= System.currentTimeMillis()) {
+                    callStack.addTask(task);
+                    if (task.isRecurring()) {
+                        task.reschedule();
+                        taskQueue.addTask(task);
+                    }
+                } else {
+                    taskQueue.addTask(task);
+                }
+            }
         }
     }
 
@@ -29,42 +51,15 @@ public class EventLoop {
         isRunning = false;
     }
 
-    private void processNextEvent() {
-        Event event = eventQueue.dequeue();
-        if (event != null) {
-            try {
-                event.execute();
-            } catch (Exception e) {
-                errorHandler.handleError(e);
-            }
-        }
+    public void addTask(Task task) {
+        callStack.addTask(task);
     }
 
-    private void processTimerTasks() {
-        TimerTask timerTask = timerService.getNextDueTask();
-        while (timerTask != null) {
-            try {
-                timerTask.execute();
-                if (timerTask.isRecurring()) {
-                    timerTask.reschedule();
-                    timerService.scheduleTask(timerTask::execute, timerTask.getExecutionTime() - System.currentTimeMillis());
-                }
-            } catch (Exception e) {
-                errorHandler.handleError(e);
-            }
-            timerTask = timerService.getNextDueTask();
-        }
+    public void scheduleTask(TimerTask task) {
+        taskQueue.addTask(task);
     }
 
-    public void submitTask(Task task) {
-        eventQueue.enqueue(task);
-    }
-
-    public void setTimeout(Task task, long delay) {
-        timerService.scheduleTask(task, delay);
-    }
-
-    public void setInterval(Task task, long interval) {
-        timerService.scheduleRecurringTask(task, interval);
+    public void addPromiseTask(PromiseTask task) {
+        microtaskQueue.addTask(task);
     }
 }
