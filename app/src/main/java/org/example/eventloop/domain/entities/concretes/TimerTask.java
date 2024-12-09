@@ -1,22 +1,24 @@
-package org.example.eventloop.timer;
+package org.example.eventloop.domain.entities.concretes;
 
-import org.example.eventloop.core.interfaces.Task;
+import org.example.eventloop.domain.entities.interfaces.ITask;
 
-public class TimerTask implements Comparable<TimerTask> {
-    private final Task task;
+public class TimerTask implements ITask, Comparable<TimerTask> {
+    private final Runnable task;
     private long executionTime;
-    private final long interval;
+    private long interval = 0;
 
-    public TimerTask(Task task, long delay) {
-        this(task, delay, 0);
+    public TimerTask(Runnable task, long delay) {
+        this.task = task;
+        this.executionTime = System.currentTimeMillis() + delay;
     }
 
-    public TimerTask(Task task, long delay, long interval) {
+    public TimerTask(Runnable task, long delay, long interval) {
         this.task = task;
         this.executionTime = System.currentTimeMillis() + delay;
         this.interval = interval;
     }
 
+    @Override
     public void execute() {
         task.run();
     }
