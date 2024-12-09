@@ -1,21 +1,38 @@
 package org.example;
 
 import org.example.eventloop.core.EventLoop;
-import org.example.eventloop.scheduler.TaskScheduler;
+import org.example.eventloop.domain.entities.concretes.Task;
+import org.example.eventloop.domain.entities.concretes.TimerTask;
+import org.example.eventloop.utils.APIFetcher;
 
 public class App {
+
     public static void main(String[] args) {
         EventLoop eventLoop = new EventLoop();
-        TaskScheduler scheduler = new TaskScheduler(eventLoop);
+        APIFetcher fetcher = new APIFetcher(eventLoop);
 
-        scheduler.submitTask(() -> System.out.println("Immediate task executed"));
-        scheduler.scheduleTask(() -> System.out.println("Delayed task executed"), 2000);
-        scheduler.scheduleRecurringTask(() -> System.out.println("Recurring task executed"), 1000);
+        eventLoop.addTask(new Task(() -> System.out.println("Immediate task executed")));
+
+        eventLoop.scheduleTask(new TimerTask(() -> System.out.println("Delayed task executed"), 2000));
+
+        eventLoop.scheduleTask(new TimerTask(() -> System.out.println("Recurring task executed"), 1000, 1000));
+
+        fetcher.fetch("https://jsonplaceholder.typicode.com/todos/1");
+
+        fetcher.fetch("https://jsonplaceholder.typicode.com/posts/1");
+
+        eventLoop.addTask(new Task(() -> {
+            System.out.println("Composite task showing multiple API interactions");
+        }));
 
         new Thread(eventLoop::start).start();
+        
+        eventLoop.addTask(new Task(() -> {
+            throw new RuntimeException("Simulated exception from task");
+        }));
 
         try {
-            Thread.sleep(5000);
+            Thread.sleep(10000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
